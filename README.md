@@ -1,6 +1,10 @@
 # Android Motorcycle Tracking System  
 
-This project is an **Android-based motorcycle Tracking system** built using the **Automate** app. It allows users to import and run a `.flo` flow directly in the Automate application to track motorcycle movement and environmental conditions.  
+This project is an **Android-based motorcycle tracking system** built using the **Automate** app. It allows users to import and run a `.flo` flow directly in Automate to track motorcycle movement and environmental conditions.  
+
+## Why Automate?  
+
+The **Automate** app was chosen for its **robustness, reliability, and flexibility**. It enables modifications and enhancements **directly on your phone**, eliminating the need for rebuilding the entire application on a workstation.  
 
 ## Features  
 
@@ -15,18 +19,21 @@ This project is an **Android-based motorcycle Tracking system** built using the 
   - Battery level  
 
 - **JSON Data Transmission:**  
-  The collected data is formatted into a **JSON request** that can be sent to an API server (future implementation with **.NET API**).  
+  The collected data is formatted into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
 - **Customizable & Extendable:**  
-  Users can freely access and modify the **Automate** flow to fit their needs.  
+  Users can freely access and modify the **Automate** flow to fit their specific needs.  
 
 ## Requirements  
 
 - **Automate App** (Android)  
 - Location services **must be enabled** for proper functionality  
-- **Paid Version IS Required**: The flow may exceed the free version's allowed number of elements. It is possible to lower the amount of elements thus reducing the need for a paid version.  
+- **Paid Version Required**: The flow may exceed the free version's element limit. However, optimizing the flow to reduce elements **could** eliminate the need for a paid version.  
 
 ## Future Development  
 
-- **API Implementation:** A **.NET-based API** will be developed to receive and process tracking data.  
-- **Additional Features:** Possible improvements include notification alerts, remote shutdown, and real-time tracking UI.  
+- **API Integration:** A **.NET-based API** will be developed to receive and process tracking data.  
+- **Additional Features:** Potential enhancements include:  
+  - Notification alerts  
+  - Remote shutdown  
+  - Real-time tracking UI  
