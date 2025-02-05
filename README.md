@@ -42,12 +42,13 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 
 ## Example JSON  
 
+
 ```json
 {
   "Location": {
-    "Latitude": "54.7085436",
-    "Longitude": "25.2951811",
-    "Altitude": "156.3000030517578",
+    "Latitude": "56.7069466",
+    "Longitude": "29.2551711",
+    "Altitude": "126.3020230117178",
     "Angle": "",
     "Speed": "",
     "Accuracy": "15.092000007629395",
