@@ -40,14 +40,28 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
   - Remote shutdown  
   - Real-time tracking UI  
 
-## Example JSON
+## Example JSON  
 
-
+```json
 {
-'Location': {'Latitude': '54.7085436', 'Longitude': '25.2951811', 'Altitude': '156.3000030517578', 'Angle': '', 'Speed': '', 'Accuracy': '15.092000007629395', 'Time': '1.738715070128E9', 'Provider': 'network'},
-'Light_Sensitivity': '9.99000072479248',
-'Magnetic_Field': '56.768226623535156',
-'Angle_Data': {'Azimuth': '163.20204162597656', 'Pitch': '-5.505209445953369', 'Roll': '-0.3244052827358246'},
-'Battery_Level': '32',
-'Battery_Charging_Time_Left': 'NotCharging',
-'Timestamp': '2025-02-05 02:27:28'}
+  "Location": {
+    "Latitude": "54.7085436",
+    "Longitude": "25.2951811",
+    "Altitude": "156.3000030517578",
+    "Angle": "",
+    "Speed": "",
+    "Accuracy": "15.092000007629395",
+    "Time": "1.738715070128E9",
+    "Provider": "network"
+  },
+  "Light_Sensitivity": "9.99000072479248",
+  "Magnetic_Field": "56.768226623535156",
+  "Angle_Data": {
+    "Azimuth": "163.20204162597656",
+    "Pitch": "-5.505209445953369",
+    "Roll": "-0.3244052827358246"
+  },
+  "Battery_Level": "32",
+  "Battery_Charging_Time_Left": "NotCharging",
+  "Timestamp": "2025-02-05 02:27:28"
+}
