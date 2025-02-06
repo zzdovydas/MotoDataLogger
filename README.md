@@ -34,11 +34,12 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 
 ## Future Development  
 
-- **API Integration:** A **.NET-based API** will be developed to receive and process tracking data.  
+- **API Integration:** A **.NET-based API** will be developed to receive and process tracking data. The API will be open source and available to users.
 - **Additional Features:** Potential enhancements include:  
-  - Notification alerts  
-  - Remote shutdown  
-  - Real-time tracking UI  
+  - Notification alerts  (High priority)
+  - Remote shutdown? (Very low priority)
+  - Real-time tracking UI  (High priority)
+  - Login system using basic auth or oauth.
 
 ## Example JSON  
 
