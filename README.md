@@ -29,7 +29,8 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 ## Requirements  
 
 - **Automate App** (Android)  
-- Location services **must be enabled** for proper functionality  
+- Location services **must be enabled** for proper functionality
+- Device with root priviliges is prefered, but it the app is still usable and fully functionable without root.
 - **Paid Version Required**: The flow may exceed the free version's element limit. However, optimizing the flow to reduce elements **could** eliminate the need for a paid version.  
 
 ## Future Development  
