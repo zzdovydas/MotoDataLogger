@@ -6,7 +6,7 @@ Currently, the app **only generates a JSON request** containing the collected se
 
 ## Why Automate?  
 
-The **Automate** app was chosen for its **robustness, reliability, and flexibility**. It allows modifications and enhancements **directly on your phone**, eliminating the need to rebuild the entire application on a workstation.  
+The **Automate** app was chosen for its **robustness, reliability, and flexibility**. It allows modifications and enhancements **directly on your phone**, eliminating the need to rebuild the entire application on a workstation.
 
 ## Features  
 
