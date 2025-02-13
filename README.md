@@ -2,16 +2,16 @@
 
 This project is an **Android-based motorcycle tracking system** built using the **Automate** app. It allows users to import and run a `.flo` flow directly in Automate to track motorcycle movement and environmental conditions.
 
-Currently, the app **only generates a JSON request** containing the collected sensor data. API transmission is **not yet implemented** but will be added in future commits.  
+Currently, the app **only generates a JSON request** containing the collected sensor data. API transmission is **not yet implemented** but will be added in future commits.
 
-## Why Automate?  
+## Why Automate?
 
 The **Automate** app was chosen for its **robustness, reliability, and flexibility**. It allows modifications and enhancements **directly on your phone**, eliminating the need to rebuild the entire application on a workstation.
 
 ## Features  
 
 - **Real-time Data Collection:**  
-  The system gathers sensor data, including:  
+  The system gathers sensor data, including:
   - GPS movement  
   - Ambient light  
   - Acceleration  
