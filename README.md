@@ -44,6 +44,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 
 ## Example JSON  
 
+Gather data from Android device to send to API
 
 ```json
 {
