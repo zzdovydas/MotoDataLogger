@@ -1,4 +1,4 @@
-# Android Motorcycle Tracking System  
+# Android Motorcycle Tracking System
 
 This project is an **Android-based motorcycle tracking system** built using the **Automate** app. It allows users to import and run a `.flo` flow directly in Automate to track motorcycle movement and environmental conditions.
 
