@@ -10,7 +10,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 
 ## Features
 
-- **Real-time Data Collection:**  
+- **Real-time Data Collection:**
   The system gathers sensor data, including:
   - GPS movement  
   - Ambient light  
