@@ -20,7 +20,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
   - Device orientation  
   - Battery level  
 
-- **JSON Data Generation:**  
+- **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
 - **Customizable & Extendable:**  
