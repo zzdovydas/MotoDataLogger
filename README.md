@@ -23,7 +23,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 - **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
-- **Customizable & Extendable:**  
+- **Customizable & Extendable:**
   Users can freely access and modify the **Automate** flow to fit their specific needs. 
 
 ## Requirements  
