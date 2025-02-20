@@ -42,7 +42,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
   - Real-time tracking UI  (High priority)
   - Login system using basic auth or oauth.
 
-## Example JSON  
+## Example JSON 
 
 Gather data from Android device to send to API
 
