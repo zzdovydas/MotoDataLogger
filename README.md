@@ -26,7 +26,7 @@ The **Automate** app was chosen for its **robustness, reliability, and flexibili
 - **Customizable & Extendable:**
   Users can freely access and modify the **Automate** flow to fit their specific needs. 
 
-## Requirements 
+## Requirements
 
 - **Automate App** (Android)  
 - Location services **must be enabled** for proper functionality
