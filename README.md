@@ -30,22 +30,6 @@
 - **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
-## Requirements
-
-- **Automate App** (Android)  
-- Location services **must be enabled** for proper functionality
-- Device with root priviliges is prefered, but it the app is still usable and fully functionable without root.
-- **Paid Version Required**: The flow may exceed the free version's element limit. However, optimizing the flow to reduce elements **could** eliminate the need for a paid version.  
-
-## Future Development  
-
-- **API Integration:** A **.NET-based API** will be developed to receive and process tracking data. The API will be open source and available to users.
-- **Additional Features:** Potential enhancements include:  
-  - Notification alerts  (High priority)
-  - Remote shutdown? (Very low priority)
-  - Real-time tracking UI  (High priority)
-  - Login system using basic auth or oauth.
-
 ## Example JSON 
 
 Gather data from Android device to send to API
