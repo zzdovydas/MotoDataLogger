@@ -1,30 +1,34 @@
-# Android Motorcycle Tracking System
+# MotoDataLogger  
 
-This project is an **Android-based motorcycle tracking system** built using the **Automate** app. It allows users to import and run a `.flo` flow directly in Automate to track motorcycle movement and environmental conditions.
+**MotoDataLogger** is an **Android-based motorcycle tracking system** powered by the **Automate** app. It captures real-time sensor data from an Android device and structures it into a JSON request for future API integration.  
 
-Currently, the app **only generates a JSON request** containing the collected sensor data. API transmission is **not yet implemented** but will be added in future commits.
+## 📌 Features  
 
-## Why Automate?
+✔ **Real-time Data Logging** – Collects essential ride data, including:  
+  - 📍 GPS location & speed  
+  - ☀ Ambient light levels  
+  - 📊 Acceleration & orientation  
+  - 🔋 Battery status  
+  - 🌡 Temperature & humidity  
+  - 🧲 Magnetic field readings  
 
-The **Automate** app was chosen for its **robustness, reliability, and flexibility**. It allows modifications and enhancements **directly on your phone**, eliminating the need to rebuild the entire application on a workstation.
+✔ **JSON Data Generation** – Prepares structured JSON output for seamless API integration.  
 
-## Features
+✔ **Flexible & Customizable** – Modify the **Automate** flow directly on your phone, no coding required!  
 
-- **Real-time Data Collection:**
-  The system gathers sensor data, including:
-  - GPS movement  
-  - Ambient light  
-  - Acceleration  
-  - Temperature & humidity  
-  - Magnetic field  
-  - Device orientation  
-  - Battery level  
+## 🔧 Requirements  
+
+- **Android device** with the [Automate](https://llamalab.com/automate/) app  
+- **Location services enabled** for GPS tracking  
+- **Paid version recommended** (Automate app flow file may exceed free version limits)  
+
+## 🚀 Future Enhancements  
+
+- **.NET API integration** for real-time data transmission
+- **Live tracking dashboard**
 
 - **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
-
-- **Customizable & Extendable:**
-  Users can freely access and modify the **Automate** flow to fit their specific needs. 
 
 ## Requirements
 
