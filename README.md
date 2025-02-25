@@ -30,7 +30,7 @@
 - **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
-## Example JSON 
+## Example JSON
 
 Gather data from Android device to send to API
 
