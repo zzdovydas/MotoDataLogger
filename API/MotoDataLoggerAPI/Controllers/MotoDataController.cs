@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using MotoDataLoggerAPI.Models;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MotoDataLoggerAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class MotoDataController : ControllerBase
     {
         private static List<MotoData> _motoDataList = new List<MotoData>();

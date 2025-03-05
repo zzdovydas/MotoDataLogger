@@ -37,7 +37,7 @@ namespace MotoDataLoggerAPI.Models
                  UpdateLastKnownState(currentData);
                 return;
             }
-            if(currentData == null)
+            if (currentData == null)
             {
                 IsAlarmTriggered = false;
                 AlarmTriggerReason = "No data received";
