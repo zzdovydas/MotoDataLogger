@@ -1,4 +1,4 @@
-# MotoDataLogger  
+# MotoDataLogger
 
 **MotoDataLogger** is an **Android-based motorcycle tracking system** powered by the **Automate** app. It captures real-time sensor data from an Android device and structures it into a JSON request for future API integration.  
 
