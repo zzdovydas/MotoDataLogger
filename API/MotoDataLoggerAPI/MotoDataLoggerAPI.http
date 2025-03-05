@@ -1,0 +1,6 @@
+@MotoDataLoggerAPI_HostAddress = http://localhost:5005
+
+GET {{MotoDataLoggerAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,35 @@
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore build and output directories
+bin/
+obj/
+
+# Ignore user-specific settings and IDE configurations
+.vscode/
+
+# Ignore Git-related files
+.git/
+
+# Ignore log files and temporary files
+logs/
+*.log
+
+# Ignore compiled files
+*.exe
+*.dll
+*.pdb
+*.so
+*.dylib
+*.class
+
+# Ignore environment and configuration overrides
+appsettings.Development.json
+
+# Ignore generated package and dependency files
+node_modules/
+*.lock
+
+# Ignore tree structure export file
+tree.txt
