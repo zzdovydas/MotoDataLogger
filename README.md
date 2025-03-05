@@ -2,6 +2,8 @@
 
 **MotoDataLogger** is an **Android-based motorcycle tracking system** powered by the **Automate** app. It captures real-time sensor data from an Android device and structures it into a JSON request for future API integration. The idea is to be able to use an older or unused android device for tracking motorcycle or any other vehicle. The system will also implement the alarm system which will warn user if any of the sensors values changed beyond threshold.  
 
+The goal is to create a docker image for deployment of the api. This way the api could be deployed on cloud or locally by the user. I will also include docker-compose file for the API.
+
 ## 📌 Features  
 
 ✔ **Real-time Data Logging** – Collects essential ride data, including:  
