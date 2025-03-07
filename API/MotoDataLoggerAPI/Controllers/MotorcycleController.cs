@@ -1,98 +1,82 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MotoDataLoggerAPI.Models;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+using MotoDataLoggerAPI.Repository;
 
 namespace MotoDataLoggerAPI.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
     [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
     public class MotorcycleController : ControllerBase
     {
-        private static List<Motorcycle> _motorcycles = new List<Motorcycle>();
-        private static int _nextId = 1; // Simple ID generator
+        private readonly IMotorcycleRepository _repository;
+
+        public MotorcycleController(IMotorcycleRepository repository)
+         {
+             _repository = repository;
+         }
 
         [HttpGet]
-        public IActionResult GetMotorcycles()
+        public async Task<IActionResult> GetMotorcycles()
         {
-            return Ok(_motorcycles);
+            var motorcycles = await _repository.GetMotorcyclesAsync();
+            return Ok(motorcycles);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetMotorcycle(int id)
+        public async Task<IActionResult> GetMotorcycle(int id)
         {
-            var motorcycle = _motorcycles.FirstOrDefault(m => m.Id == id);
+            var motorcycle = await _repository.GetMotorcycleAsync(id);
             if (motorcycle == null)
             {
-                return NotFound($"Motorcycle with ID {id} not found.");
+                return NotFound("Motorcycle not found");
             }
             return Ok(motorcycle);
         }
 
         [HttpPost]
-        public IActionResult AddMotorcycle([FromBody] Motorcycle motorcycle)
+        public async Task<IActionResult> AddMotorcycle([FromBody] Motorcycle motorcycle)
         {
             if (motorcycle == null)
             {
-                return BadRequest("Motorcycle data is null.");
+                return BadRequest("Motorcycle data is null");
             }
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            motorcycle.Id = _nextId++;
-            _motorcycles.Add(motorcycle);
-
-            return CreatedAtAction(nameof(GetMotorcycle), new { id = motorcycle.Id }, motorcycle);
+            var createdMotorcycle = await _repository.AddMotorcycleAsync(motorcycle);
+            return CreatedAtAction(nameof(GetMotorcycle), new { id = createdMotorcycle.Id }, createdMotorcycle);
         }
-
         [HttpPut("{id}")]
-        public IActionResult UpdateMotorcycle(int id, [FromBody] Motorcycle updatedMotorcycle)
+        public async Task<IActionResult> UpdateMotorcycle(int id, [FromBody] Motorcycle motorcycle)
         {
-            if (updatedMotorcycle == null)
+             if (motorcycle == null)
             {
-                return BadRequest("Motorcycle data is null.");
+                return BadRequest("Motorcycle is null");
             }
-            if(id != updatedMotorcycle.Id)
+            if (id != motorcycle.Id)
             {
-                return BadRequest($"ID in the url ({id}) is different from id in the body ({updatedMotorcycle.Id})");
+                return BadRequest("Id is incorrect");
             }
-            if (!ModelState.IsValid)
+            var updatedMotorcycle = await _repository.UpdateMotorcycleAsync(id, motorcycle);
+             if (updatedMotorcycle == null)
             {
-                return BadRequest(ModelState);
+                return NotFound("Motorcycle not found");
             }
-
-            var existingMotorcycle = _motorcycles.FirstOrDefault(m => m.Id == id);
-            if (existingMotorcycle == null)
-            {
-                return NotFound($"Motorcycle with ID {id} not found.");
-            }
-
-            existingMotorcycle.Manufacturer = updatedMotorcycle.Manufacturer;
-            existingMotorcycle.Model = updatedMotorcycle.Model;
-            existingMotorcycle.Year = updatedMotorcycle.Year;
-            existingMotorcycle.Description = updatedMotorcycle.Description;
-            existingMotorcycle.Vin = updatedMotorcycle.Vin;
-            existingMotorcycle.LicensePlate = updatedMotorcycle.LicensePlate;
-            existingMotorcycle.EngineDisplacement = updatedMotorcycle.EngineDisplacement;
-
-            return Ok(existingMotorcycle);
+            return Ok(updatedMotorcycle);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteMotorcycle(int id)
+        public async Task<IActionResult> DeleteMotorcycle(int id)
         {
-            var motorcycle = _motorcycles.FirstOrDefault(m => m.Id == id);
-            if (motorcycle == null)
+            var result = await _repository.DeleteMotorcycleAsync(id);
+             if (!result)
             {
-                return NotFound($"Motorcycle with ID {id} not found.");
+                return NotFound("Motorcycle not found");
             }
-
-            _motorcycles.Remove(motorcycle);
             return NoContent();
         }
     }

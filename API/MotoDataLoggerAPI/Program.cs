@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Pomelo.EntityFrameworkCore.MySql;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using MotoDataLoggerAPI.Repository;
+using Microsoft.OpenApi.Models;
+using MotoDataLoggerAPI;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,14 +16,13 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "MotoDataLoggerAPI", Version = "v1" });
 
-    // Add JWT Authentication
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Description = "Enter JWT Bearer token **_only_**",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "bearer", // must be lower case
+        Scheme = "bearer",
         BearerFormat = "JWT",
         Reference = new OpenApiReference
         {
@@ -33,6 +36,17 @@ builder.Services.AddSwaggerGen(c =>
         {securityScheme, new string[] { }}
     });
 });
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 36));
+
+builder.Services.AddDbContext<MotoDataContext>(options =>
+    options.UseMySql(connectionString, serverVersion));
+
+builder.Services.AddScoped<IMotoDataRepository, MotoDataRepository>();
+builder.Services.AddScoped<IMotorcycleRepository, MotorcycleRepository>();
+builder.Services.AddScoped<IUserRepository, AuthRepository>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -51,7 +65,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-// Configure the HTTP request pipeline.
+
+// Apply migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MotoDataContext>();
+    dbContext.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

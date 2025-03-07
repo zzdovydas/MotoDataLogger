@@ -1,3 +1,6 @@
+//c:\Users\Dovydas\Documents\MotoDataLogger\API\MotoDataLoggerAPI\Models\AuthDtos.cs
+using System.ComponentModel.DataAnnotations;
+
 namespace MotoDataLoggerAPI.Models
 {
     public class UserLoginDto
@@ -13,6 +16,8 @@ namespace MotoDataLoggerAPI.Models
     }
     public class User
     {
+        [Key]
+        public int Id {get; set;}
         public string Username { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
     }

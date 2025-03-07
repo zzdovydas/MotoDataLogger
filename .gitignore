@@ -8,6 +8,7 @@ obj/
 
 # Ignore user-specific settings and IDE configurations
 .vscode/
+.vs/
 
 # Ignore Git-related files
 .git/
@@ -15,6 +16,7 @@ obj/
 # Ignore log files and temporary files
 logs/
 *.log
+*.tmp
 
 # Ignore compiled files
 *.exe
@@ -33,3 +35,28 @@ node_modules/
 
 # Ignore tree structure export file
 tree.txt
+
+# Ignore Docker-related files
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Ignore test results
+TestResults/
+*.trx
+*.coverage
+coverage/
+coverage.info
+
+# Ignore Rider IDE files
+.idea/
+*.sln.iml
+
+# Ignore JetBrains Rider specific files
+.idea/
+*.sln.iml
+
+# Ignore ReSharper files
+_ReSharper*/
+
+# Ignore migration files
+**/Migrations/

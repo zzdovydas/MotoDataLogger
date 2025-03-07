@@ -1,37 +1,37 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MotoDataLoggerAPI.Models;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Authorization;
+using MotoDataLoggerAPI.Repository;
 
 namespace MotoDataLoggerAPI.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
     [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
     public class MotoDataController : ControllerBase
     {
-        private static List<MotoData> _motoDataList = new List<MotoData>();
-
-        [HttpPost]
-        public IActionResult PostMotoData([FromBody] MotoData data)
+        private readonly IMotoDataRepository _repository;
+        public MotoDataController(IMotoDataRepository repository)
         {
-            if (data == null)
+            _repository = repository;
+        }
+        [HttpPost]
+        public async Task<IActionResult> PostMotoData([FromBody] MotoData motoData)
+        {
+            if (motoData == null)
             {
                 return BadRequest("Data is null");
             }
 
-            // Process the data here (e.g., save to database)
-            Console.WriteLine(data.Timestamp);
-            _motoDataList.Add(data);
-
+            await _repository.AddMotoDataAsync(motoData);
             return Ok("Data received successfully");
         }
-
         [HttpGet]
-        public IActionResult GetMotoData()
+        public async Task<IActionResult> GetMotoData()
         {
-            //returning all the data for now
-            return Ok(_motoDataList);
+            var motoDataList = await _repository.GetMotoDataAsync();
+            return Ok(motoDataList);
         }
+
     }
 }

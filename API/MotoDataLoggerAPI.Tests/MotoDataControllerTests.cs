@@ -1,31 +1,47 @@
 using MotoDataLoggerAPI.Controllers;
 using MotoDataLoggerAPI.Models;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using Xunit;
-using FluentAssertions;
-using System.Reflection;
+using MotoDataLoggerAPI.Repository;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace MotoDataLoggerAPI.Tests.Controller
 {
-    public class MotoDataControllerTests : IDisposable
+    public class MotoDataControllerTests : IAsyncLifetime
     {
         private readonly MotoDataController _controller;
-        private static List<MotoData> _motoDataList;
+        private readonly IMotoDataRepository _repository;
+        private readonly MotoDataContext _context;
 
         public MotoDataControllerTests()
         {
-            // Create a fresh instance of the controller for each test
-            _controller = new MotoDataController();
+            var options = new DbContextOptionsBuilder<MotoDataContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .Options;
+            _context = new MotoDataContext(options);
+            _repository = new MotoDataRepository(_context);
+            _controller = new MotoDataController(_repository);
+        }
 
-            // Get the private static _motoDataList list using reflection
-            FieldInfo field = typeof(MotoDataController).GetField("_motoDataList", BindingFlags.NonPublic | BindingFlags.Static);
-            _motoDataList = (List<MotoData>)field.GetValue(null);
+        private async Task ClearDatabase()
+        {
+            _context.MotoDatas.RemoveRange(_context.MotoDatas);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await ClearDatabase();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _context.DisposeAsync();
         }
 
         [Fact]
-        public void PostMotoData_ValidData_ReturnsOkResult()
+        public async Task PostMotoData_ValidData_ReturnsOkResult()
         {
             // Arrange
             var motoData = new MotoData
@@ -36,7 +52,7 @@ namespace MotoDataLoggerAPI.Tests.Controller
             };
 
             // Act
-            var result = _controller.PostMotoData(motoData);
+            var result = await _controller.PostMotoData(motoData);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
@@ -45,10 +61,10 @@ namespace MotoDataLoggerAPI.Tests.Controller
         }
 
         [Fact]
-        public void PostMotoData_NullData_ReturnsBadRequest()
+        public async Task PostMotoData_NullData_ReturnsBadRequest()
         {
             // Act
-            var result = _controller.PostMotoData(null);
+            var result = await _controller.PostMotoData(null);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
@@ -57,38 +73,33 @@ namespace MotoDataLoggerAPI.Tests.Controller
         }
 
         [Fact]
-        public void GetMotoData_ReturnsOkResult_WithDataList()
+        public async Task GetMotoData_ReturnsOkResult_WithDataList()
         {
             // Arrange
-            // Add some MotoData to the list to make sure there is something to test
-            _controller.PostMotoData(new MotoData { Timestamp = DateTime.Now, LightSensitivity = 10 });
-            _controller.PostMotoData(new MotoData { Timestamp = DateTime.Now, LightSensitivity = 11 });
+            // Add some MotoData to the database to make sure there is something to test
+            await _repository.AddMotoDataAsync(new MotoData { Timestamp = DateTime.Now, LightSensitivity = 10 });
+            await _repository.AddMotoDataAsync(new MotoData { Timestamp = DateTime.Now, LightSensitivity = 11 });
 
             // Act
-            var result = _controller.GetMotoData();
+            var result = await _controller.GetMotoData();
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var motoDataList = Assert.IsAssignableFrom<List<MotoData>>(okResult.Value);
             Assert.NotEmpty(motoDataList); // Check if the list is not empty
-            motoDataList.Count.Should().Be(2);
+            Assert.Equal(2, motoDataList.Count);
         }
 
         [Fact]
-        public void GetMotoData_EmptyList_ReturnsOkResult_WithEmptyList()
+        public async Task GetMotoData_EmptyList_ReturnsOkResult_WithEmptyList()
         {
             // Act
-            var result = _controller.GetMotoData();
+            var result = await _controller.GetMotoData();
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var motoDataList = Assert.IsAssignableFrom<List<MotoData>>(okResult.Value);
             Assert.Empty(motoDataList);
-        }
-          public void Dispose()
-        {
-            // Clear the list after each test
-            _motoDataList.Clear();
         }
     }
 }

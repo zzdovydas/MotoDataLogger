@@ -3,9 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using MotoDataLoggerAPI.Models;
+using MotoDataLoggerAPI.Repository;
 
 namespace MotoDataLoggerAPI.Controllers
 {
@@ -14,27 +14,27 @@ namespace MotoDataLoggerAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private static List<User> _users = new List<User>();
+        private readonly IUserRepository _repository;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, IUserRepository repository)
         {
             _configuration = configuration;
-            if(_users.Count < 1){
-                 _users.Add(new User{Username="test",PasswordHash= BCrypt.Net.BCrypt.HashPassword("password")});
-            }
+            _repository = repository;
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserRegisterDto request)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
         {
-            if (_users.Any(u => u.Username == request.Username))
+            // Check if user already exists
+            var existingUser = await _repository.GetUserByUsernameAsync(request.Username);
+            if (existingUser != null)
             {
                 return BadRequest("User with this username already exists.");
             }
 
-             if (request.Password != request.ConfirmPassword)
+            if (request.Password != request.ConfirmPassword)
             {
-                return BadRequest("Passwords does not match.");
+                return BadRequest("Passwords do not match.");
             }
 
             var user = new User
@@ -43,15 +43,14 @@ namespace MotoDataLoggerAPI.Controllers
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
-            _users.Add(user);
+            await _repository.AddUserAsync(user);
             return Ok($"User {user.Username} was registered successfully");
         }
 
-
         [HttpPost("login")]
-        public IActionResult Login([FromBody] UserLoginDto request)
+        public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
-            var user = _users.FirstOrDefault(u => u.Username == request.Username);
+            var user = await _repository.GetUserByUsernameAsync(request.Username);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
