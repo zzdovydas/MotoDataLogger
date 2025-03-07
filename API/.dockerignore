@@ -1,0 +1,18 @@
+# Ignore the obj and bin folders
+**/obj/
+**/bin/
+
+# Ignore node modules
+node_modules/
+
+# Ignore .git
+.git
+
+# Ignore vscode configuration
+.vscode
+
+# Ignore visual studio cache folders
+.vs
+
+# Ignore temp files
+*.tmp

@@ -17,7 +17,7 @@ namespace MotoDataLoggerAPI.Tests.Controller
         private static List<User> _users;
 
         public AuthControllerTests()
-        {
+        {   
             // Create a mock configuration for testing
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?> 
