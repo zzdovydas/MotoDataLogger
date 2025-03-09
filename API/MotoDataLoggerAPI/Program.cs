@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using MotoDataLoggerAPI.Repository;
 using Microsoft.OpenApi.Models;
+using MotoDataLoggerAPI.Data;
 using MotoDataLoggerAPI;
 using System.Text;
 

@@ -10,10 +10,8 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void Alarm_DefaultConstructor_SetsPropertiesToDefaultValues()
         {
-            // Arrange
             var alarm = new Alarm();
 
-            // Assert
             alarm.State.Should().Be(AlarmState.Disabled);
             alarm.DataPullIntervalSeconds.Should().Be(60);
             alarm.MovementSensitivity.Should().Be(5);
@@ -28,14 +26,11 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void CheckForAlarmTrigger_DisabledState_DoesNotTriggerAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Disabled };
             var motoData = new MotoData { Timestamp = DateTime.Now };
 
-            // Act
             alarm.CheckForAlarmTrigger(motoData);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeFalse();
             alarm.AlarmTriggerReason.Should().BeEmpty();
         }
@@ -43,13 +38,10 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void CheckForAlarmTrigger_NullData_DoesNotTriggerAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked };
 
-            // Act
             alarm.CheckForAlarmTrigger(null);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeFalse();
             alarm.AlarmTriggerReason.Should().Be("No data received");
         }
@@ -57,7 +49,6 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void CheckForAlarmTrigger_LockedState_MovementTriggersAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownLocation = new LocationData { Latitude = 50.0, Longitude = 15.0 };
             var currentData = new MotoData
@@ -66,10 +57,8 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Location = new LocationData { Latitude = 50.0001, Longitude = 15.0 } // Moved approximately 11 meters (more than 10)
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeTrue();
             alarm.AlarmTriggerReason.Should().Contain("Moved");
         }
@@ -77,7 +66,6 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void CheckForAlarmTrigger_LockedState_NoMovementDoesNotTriggerAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownLocation = new LocationData { Latitude = 50.0, Longitude = 15.0 };
             var currentData = new MotoData
@@ -86,17 +74,14 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Location = new LocationData { Latitude = 50.0, Longitude = 15.0 } // No movement
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeFalse();
             alarm.AlarmTriggerReason.Should().BeEmpty();
         }
         [Fact]
         public void CheckForAlarmTrigger_LockedState_LightSensitivityTriggersAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownLightSensitivity = 5.0;
             var currentData = new MotoData
@@ -105,17 +90,14 @@ namespace MotoDataLoggerAPI.Tests.Models
                 LightSensitivity = 8.0
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeTrue();
             alarm.AlarmTriggerReason.Should().Contain("Light sensitivity");
         }
         [Fact]
         public void CheckForAlarmTrigger_LockedState_MagneticFieldTriggersAlarm()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownMagneticField = 40.0;
             var currentData = new MotoData
@@ -124,17 +106,14 @@ namespace MotoDataLoggerAPI.Tests.Models
                 MagneticField = 60.0
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
             alarm.IsAlarmTriggered.Should().BeTrue();
             alarm.AlarmTriggerReason.Should().Contain("Magnetic field");
         }
         [Fact]
         public void UpdateLastKnownState_UpdatesPropertiesCorrectly()
         {
-            // Arrange
             var alarm = new Alarm();
             var motoData = new MotoData
             {
@@ -144,10 +123,8 @@ namespace MotoDataLoggerAPI.Tests.Models
                 MagneticField = 30.0
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(motoData);
 
-            // Assert
             alarm.LastDataReceived.Should().Be(new DateTime(2024, 01, 01));
             alarm.LastKnownLocation.Should().NotBeNull();
             alarm.LastKnownLocation.Latitude.Should().Be(51.0);
@@ -164,7 +141,6 @@ namespace MotoDataLoggerAPI.Tests.Models
          [Fact]
         public void CheckForAlarmTrigger_LockedState_NullLocation_DoesNotCrash()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownLocation = new LocationData { Latitude = 50.0, Longitude = 15.0 };
             var currentData = new MotoData
@@ -173,17 +149,14 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Location = null
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
              alarm.IsAlarmTriggered.Should().BeFalse();
             alarm.AlarmTriggerReason.Should().BeEmpty();
         }
           [Fact]
         public void CheckForAlarmTrigger_LockedState_NullLastLocation_DoesNotCrash()
         {
-            // Arrange
             var alarm = new Alarm { State = AlarmState.Locked, MovementSensitivity = 10 };
             alarm.LastKnownLocation = null;
             var currentData = new MotoData
@@ -192,10 +165,8 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Location = new LocationData { Latitude = 50.0001, Longitude = 15.0 }
             };
 
-            // Act
             alarm.CheckForAlarmTrigger(currentData);
 
-            // Assert
              alarm.IsAlarmTriggered.Should().BeFalse();
             alarm.AlarmTriggerReason.Should().BeEmpty();
         }

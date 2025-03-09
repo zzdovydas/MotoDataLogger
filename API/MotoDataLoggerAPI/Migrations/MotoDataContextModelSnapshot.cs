@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MotoDataLoggerAPI;
+using MotoDataLoggerAPI.Data;
 
 #nullable disable
 
@@ -42,6 +42,28 @@ namespace MotoDataLoggerAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AngleData");
+                });
+
+            modelBuilder.Entity("MotoDataLoggerAPI.Models.ApiKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("MotorcycleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MotorcycleId");
+
+                    b.ToTable("ApiKeys");
                 });
 
             modelBuilder.Entity("MotoDataLoggerAPI.Models.LocationData", b =>
@@ -93,6 +115,14 @@ namespace MotoDataLoggerAPI.Migrations
                     b.Property<int?>("AngleDataId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ApiKeyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApiKeyValue")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "ApiKey");
+
                     b.Property<string>("BatteryChargingTimeLeft")
                         .IsRequired()
                         .HasColumnType("longtext")
@@ -119,6 +149,8 @@ namespace MotoDataLoggerAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AngleDataId");
+
+                    b.HasIndex("ApiKeyId");
 
                     b.HasIndex("LocationId");
 
@@ -187,11 +219,26 @@ namespace MotoDataLoggerAPI.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("MotoDataLoggerAPI.Models.ApiKey", b =>
+                {
+                    b.HasOne("MotoDataLoggerAPI.Models.Motorcycle", "Motorcycle")
+                        .WithMany("ApiKeys")
+                        .HasForeignKey("MotorcycleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Motorcycle");
+                });
+
             modelBuilder.Entity("MotoDataLoggerAPI.Models.MotoData", b =>
                 {
                     b.HasOne("MotoDataLoggerAPI.Models.AngleData", "AngleData")
                         .WithMany()
                         .HasForeignKey("AngleDataId");
+
+                    b.HasOne("MotoDataLoggerAPI.Models.ApiKey", "ApiKey")
+                        .WithMany()
+                        .HasForeignKey("ApiKeyId");
 
                     b.HasOne("MotoDataLoggerAPI.Models.LocationData", "Location")
                         .WithMany()
@@ -199,7 +246,14 @@ namespace MotoDataLoggerAPI.Migrations
 
                     b.Navigation("AngleData");
 
+                    b.Navigation("ApiKey");
+
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("MotoDataLoggerAPI.Models.Motorcycle", b =>
+                {
+                    b.Navigation("ApiKeys");
                 });
 #pragma warning restore 612, 618
         }

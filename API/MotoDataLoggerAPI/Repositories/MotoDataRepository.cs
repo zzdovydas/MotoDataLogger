@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MotoDataLoggerAPI.Models;
+using MotoDataLoggerAPI.Data;
 
 namespace MotoDataLoggerAPI.Repository
 {

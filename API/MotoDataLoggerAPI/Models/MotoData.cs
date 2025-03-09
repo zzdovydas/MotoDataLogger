@@ -1,4 +1,3 @@
-//c:\Users\Dovydas\Documents\MotoDataLogger\API\MotoDataLoggerAPI\Models\MotoData.cs
 using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -24,8 +23,18 @@ namespace MotoDataLoggerAPI.Models
         [JsonPropertyName("Battery_Charging_Time_Left")]
         public string BatteryChargingTimeLeft { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
+        
+        [JsonIgnore]
+        public ApiKey? ApiKey { get; set; }
+
+        [JsonPropertyName("ApiKey")]
+        public string ApiKeyValue
+        {
+            get { return ApiKey?.Key ?? string.Empty; }
+            set { }
+        }
     }
-     [Table("LocationData")]
+    [Table("LocationData")]
     public class LocationData
     {
         [Key]
@@ -39,7 +48,7 @@ namespace MotoDataLoggerAPI.Models
         public double? Time { get; set; }
         public string Provider { get; set; } = string.Empty;
     }
-     [Table("AngleData")]
+    [Table("AngleData")]
     public class AngleData
     {
         [Key]
@@ -49,4 +58,3 @@ namespace MotoDataLoggerAPI.Models
         public double? Roll { get; set; }
     }
 }
-

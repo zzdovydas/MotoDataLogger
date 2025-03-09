@@ -30,5 +30,7 @@ namespace MotoDataLoggerAPI.Models
         
         [Range(10, 2000, ErrorMessage = "Engine Displacement must be between 10 and 2000 m3.")]
         public int? EngineDisplacement {get; set;}
+
+        public List<ApiKey> ApiKeys { get; set; } = new List<ApiKey>(); 
     }
 }

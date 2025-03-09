@@ -25,7 +25,6 @@ namespace MotoDataLoggerAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
         {
-            // Check if user already exists
             var existingUser = await _repository.GetUserByUsernameAsync(request.Username);
             if (existingUser != null)
             {
@@ -69,7 +68,6 @@ namespace MotoDataLoggerAPI.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Username),
-                // You can add more claims here, such as roles.
             };
 
             var token = new JwtSecurityToken(

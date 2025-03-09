@@ -9,10 +9,8 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void LocationData_DefaultConstructor_SetsPropertiesToDefaultValues()
         {
-            // Arrange
             var locationData = new LocationData();
 
-            // Assert
             locationData.Latitude.Should().BeNull();
             locationData.Longitude.Should().BeNull();
             locationData.Altitude.Should().BeNull();
@@ -26,7 +24,6 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void LocationData_SetAndGetProperties_ReturnsCorrectValues()
         {
-            // Arrange
             var locationData = new LocationData
             {
                 Latitude = 50.123,
@@ -39,7 +36,6 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Provider = "network"
             };
 
-            // Assert
             locationData.Latitude.Should().Be(50.123);
             locationData.Longitude.Should().Be(14.567);
             locationData.Altitude.Should().Be(150.5);

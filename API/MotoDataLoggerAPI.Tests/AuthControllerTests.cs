@@ -8,6 +8,7 @@ using MotoDataLoggerAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Text.Json;
+using MotoDataLoggerAPI.Data;
 
 namespace MotoDataLoggerAPI.Tests.Controller
 {

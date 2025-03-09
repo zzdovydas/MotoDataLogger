@@ -9,10 +9,8 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void AngleData_DefaultConstructor_SetsPropertiesToDefaultValues()
         {
-            // Arrange
             var angleData = new AngleData();
 
-            // Assert
             angleData.Azimuth.Should().BeNull();
             angleData.Pitch.Should().BeNull();
             angleData.Roll.Should().BeNull();
@@ -21,7 +19,6 @@ namespace MotoDataLoggerAPI.Tests.Models
         [Fact]
         public void AngleData_SetAndGetProperties_ReturnsCorrectValues()
         {
-            // Arrange
             var angleData = new AngleData
             {
                 Azimuth = 180.0,
@@ -29,7 +26,6 @@ namespace MotoDataLoggerAPI.Tests.Models
                 Roll = 5.2
             };
 
-            // Assert
             angleData.Azimuth.Should().Be(180.0);
             angleData.Pitch.Should().Be(-10.5);
             angleData.Roll.Should().Be(5.2);

@@ -7,6 +7,7 @@ using MotoDataLoggerAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using MotoDataLoggerAPI.Data;
 
 namespace MotoDataLoggerAPI.Tests.Controller
 {
