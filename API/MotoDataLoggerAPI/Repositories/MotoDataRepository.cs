@@ -18,6 +18,18 @@ namespace MotoDataLoggerAPI.Repository
             return await _context.MotoDatas.ToListAsync();
         }
 
+        public async Task<MotoData> AddMotoDataByAPIKeyAsync(MotoData motoData)
+        {
+            if (_context.ApiKeys.Any(a => a.Key == motoData.ApiKey.Key))
+            {
+                _context.MotoDatas.Add(motoData);
+                await _context.SaveChangesAsync();
+                return motoData;
+            }
+
+            return null;
+        }
+
         public async Task<MotoData> AddMotoDataAsync(MotoData motoData)
         {
             _context.MotoDatas.Add(motoData);

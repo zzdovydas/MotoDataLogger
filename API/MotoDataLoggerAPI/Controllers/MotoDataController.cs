@@ -5,7 +5,6 @@ using MotoDataLoggerAPI.Repository;
 
 namespace MotoDataLoggerAPI.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class MotoDataController : ControllerBase
@@ -15,6 +14,21 @@ namespace MotoDataLoggerAPI.Controllers
         {
             _repository = repository;
         }
+
+        [Authorize]
+        [HttpPost("PostMotoDataByAPIKey")]
+        public async Task<IActionResult> PostMotoDataByAPIKey([FromBody] MotoData motoData)
+        {
+            if (motoData == null)
+            {
+                return BadRequest("Data is null");
+            }
+
+            await _repository.AddMotoDataByAPIKeyAsync(motoData);
+            return Ok("Data received successfully");
+        }
+
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostMotoData([FromBody] MotoData motoData)
         {
@@ -26,6 +40,8 @@ namespace MotoDataLoggerAPI.Controllers
             await _repository.AddMotoDataAsync(motoData);
             return Ok("Data received successfully");
         }
+
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMotoData()
         {

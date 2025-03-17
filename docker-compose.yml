@@ -1,6 +1,6 @@
 version: '3.8'
 
-services: 
+services:
   db:
     image: mysql:8.0
     container_name: motodatalogger_db
@@ -33,6 +33,19 @@ services:
       - "5000:8080"
     depends_on:
       - db
+    networks:
+      - motodatalogger_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: MotoDataLoggerFrontend/Dockerfile
+    container_name: motodatalogger_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
     networks:
       - motodatalogger_network
 
