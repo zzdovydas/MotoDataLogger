@@ -12,7 +12,7 @@
   - 🌡 Temperature & humidity  
   - 🧲 Magnetic field readings  
 
-✔ **JSON Data Generation** – Prepares structured JSON output for seamless API integration.  
+✔ **JSON Data Generation** – Prepares structured JSON output for seamless API integration.
 
 ✔ **Flexible & Customizable** – Modify the **Automate** flow directly on your phone, no coding required!  
 
