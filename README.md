@@ -4,7 +4,7 @@
 
 ## 📌 Features
 
-✔ **Real-time Data Logging** – Collects essential ride data, including:  
+✔ **Real-time Data Logging** – Collects essential ride data, including: 
   - 📍 GPS location & speed  
   - ☀ Ambient light levels  
   - 📊 Acceleration & orientation  
