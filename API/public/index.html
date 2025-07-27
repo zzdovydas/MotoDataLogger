@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+      <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+              <h1>Dashboard</h1>
+      <nav>
+        <a href="users.html">Users</a>
+        <a href="access-logs.html">Access Logs</a>
+        <a href="known-devices.html">Known Devices</a>
+        <a href="blacklist.html">Blacklist</a>
+        <a href="locations.html">Locations</a>
+        <button onclick="logout()">Logout</button>
+      </nav>
+    </header>
+    <div id="map"></div>
+                <div id="noData" style="display:none;">No data available.</div>
+    <div id="info" style="display:none;">
+      <div class="info-card">
+        <div class="connectivity-bar">
+          <span class="connectivity-label">Status:</span>
+          <span id="connectivityStatus" class="connectivity-indicator">Connected</span>
+        </div>
+        <div class="alarm-control">
+          <span class="alarm-label">Alarm:</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="alarmToggle" onchange="toggleAlarm()">
+            <span class="slider"></span>
+          </label>
+          <span id="alarmStatus" class="alarm-status">Enabled</span>
+        </div>
+        <div class="icon-angle">
+          <span class="angle-label">Roll</span>
+                          <img id="angleIcon" src="moto-icon.png" alt="Icon">
+          <span class="angle-value"><span id="angleValue"></span>°</span>
+        </div>
+        <div class="data-group">
+          <span class="data-label">Azimuth</span>
+          <span class="data-value" id="azimuthValue"></span>
+          <span class="data-label">Pitch</span>
+          <span class="data-value" id="pitchValue"></span>
+          <span class="data-label">Last Request</span>
+          <span class="data-value" id="lastTime"></span>
+        </div>
+        <div class="data-group">
+          <span class="data-label">Battery Level</span>
+          <span class="data-value" id="battery"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="alarmModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h3>Disable Alarms?</h3>
+        <p>Are you sure you want to disable alarm notifications? You won't receive alerts for major location or angle changes.</p>
+        <div class="modal-buttons">
+          <button onclick="confirmDisableAlarm()" class="btn-confirm">Yes, Disable</button>
+          <button onclick="cancelDisableAlarm()" class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    if (!localStorage.getItem('jwt')) {
+      window.location.href = 'login.html';
+    }
+    
+    let alarmEnabled = true;
+    let pendingAlarmChange = false;
+    
+    // Load alarm settings on page load
+    loadAlarmSettings();
+    
+    function logout() {
+      localStorage.removeItem('jwt');
+      window.location.href = 'login.html';
+    }
+    
+    async function loadAlarmSettings() {
+      try {
+        const response = await fetch('/api/alarm/settings', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt')}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          alarmEnabled = data.alarm_enabled;
+          updateAlarmUI();
+        }
+      } catch (error) {
+        console.error('Failed to load alarm settings:', error);
+      }
+    }
+    
+    function updateAlarmUI() {
+      const toggle = document.getElementById('alarmToggle');
+      const status = document.getElementById('alarmStatus');
+      
+      if (toggle && status) {
+        toggle.checked = alarmEnabled;
+        status.textContent = alarmEnabled ? 'Enabled' : 'Disabled';
+        status.className = alarmEnabled ? 'alarm-status' : 'alarm-status disabled';
+      }
+    }
+    
+    function toggleAlarm() {
+      const toggle = document.getElementById('alarmToggle');
+      const newState = toggle.checked;
+      
+      if (newState) {
+        // Enable alarm - no confirmation needed
+        enableAlarm();
+      } else {
+        // Disable alarm - show confirmation modal
+        pendingAlarmChange = true;
+        document.getElementById('alarmModal').style.display = 'block';
+        // Revert toggle to previous state until confirmed
+        toggle.checked = !newState;
+      }
+    }
+    
+    async function enableAlarm() {
+      try {
+        const response = await fetch('/api/alarm/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+          },
+          body: JSON.stringify({ alarm_enabled: true })
+        });
+        
+        if (response.ok) {
+          alarmEnabled = true;
+          updateAlarmUI();
+          console.log('Alarm enabled');
+        }
+      } catch (error) {
+        console.error('Failed to enable alarm:', error);
+        // Revert UI on error
+        updateAlarmUI();
+      }
+    }
+    
+    async function confirmDisableAlarm() {
+      try {
+        const response = await fetch('/api/alarm/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+          },
+          body: JSON.stringify({ alarm_enabled: false })
+        });
+        
+        if (response.ok) {
+          alarmEnabled = false;
+          updateAlarmUI();
+          console.log('Alarm disabled');
+        }
+      } catch (error) {
+        console.error('Failed to disable alarm:', error);
+        // Revert UI on error
+        updateAlarmUI();
+      }
+      
+      // Hide modal
+      document.getElementById('alarmModal').style.display = 'none';
+      pendingAlarmChange = false;
+    }
+    
+    function cancelDisableAlarm() {
+      // Hide modal and revert toggle
+      document.getElementById('alarmModal').style.display = 'none';
+      pendingAlarmChange = false;
+      updateAlarmUI();
+    }
+    let map, marker;
+    async function fetchLatestData() {
+      const res = await fetch('/api/tracker/latest', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+      });
+      if (!res.ok) {
+        document.getElementById('info').style.display = 'none';
+        document.getElementById('noData').style.display = '';
+        if (map) map.remove();
+        map = null;
+        return;
+      }
+      const data = await res.json();
+      if (!data || !data.Location) {
+        document.getElementById('info').style.display = 'none';
+        document.getElementById('noData').style.display = '';
+        if (map) map.remove();
+        map = null;
+        return;
+      }
+      document.getElementById('info').style.display = '';
+      document.getElementById('noData').style.display = 'none';
+      const lat = parseFloat(data.Location.Latitude);
+      const lon = parseFloat(data.Location.Longitude);
+      const azimuth = parseFloat(data.Angle_Data.Azimuth) || 0;
+      const roll = parseFloat(data.Angle_Data.Roll) || 0;
+      const pitch = parseFloat(data.Angle_Data.Pitch) || 0;
+      const lastTime = data.Timestamp || '';
+      const battery = data.Battery_Level || '';
+      
+      // Check connectivity status
+      const lastRequestTime = new Date(lastTime);
+      const now = new Date();
+      const timeDiffMinutes = (now - lastRequestTime) / (1000 * 60);
+      const isConnected = timeDiffMinutes <= 5;
+      
+      const connectivityStatus = document.getElementById('connectivityStatus');
+      if (isConnected) {
+        connectivityStatus.textContent = 'Connected';
+        connectivityStatus.className = 'connectivity-indicator connected';
+      } else {
+        connectivityStatus.textContent = 'Disconnected';
+        connectivityStatus.className = 'connectivity-indicator disconnected';
+      }
+      
+      if (!map) {
+        map = L.map('map').setView([lat, lon], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+        }).addTo(map);
+        marker = L.marker([lat, lon], {
+          icon: L.icon({
+            iconUrl: 'moto-icon.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+          })
+        }).addTo(map);
+      } else {
+        marker.setLatLng([lat, lon]);
+        map.setView([lat, lon]);
+      }
+      // Rotate icon using roll
+      document.getElementById('angleIcon').style.transform = `rotate(${roll}deg)`;
+      document.getElementById('angleValue').innerText = roll.toFixed(1);
+      document.getElementById('azimuthValue').innerText = azimuth.toFixed(1) + '°';
+      document.getElementById('pitchValue').innerText = pitch.toFixed(1) + '°';
+      document.getElementById('lastTime').innerText = lastTime;
+      document.getElementById('battery').innerText = battery + '%';
+    }
+    fetchLatestData();
+    setInterval(fetchLatestData, 5000);
+  </script>
+</body>
+</html>

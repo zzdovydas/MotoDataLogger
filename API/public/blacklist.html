@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Blacklist</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .blacklist-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .add-blacklist-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .add-blacklist-form {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .btn-add {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-add:hover {
+            background: #c82333;
+        }
+        
+        .blacklist-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .blacklist-info {
+            flex: 1;
+        }
+        
+        .blacklist-ip {
+            font-weight: bold;
+            font-size: 18px;
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+        
+        .blacklist-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .blacklist-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-remove {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-remove:hover {
+            background: #5a6268;
+        }
+        
+        .stats-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IP Blacklist</h1>
+            <nav>
+                <a href="index.html">Dashboard</a>
+                <a href="users.html">Users</a>
+                <a href="access-logs.html">Access Logs</a>
+                <a href="known-devices.html">Known Devices</a>
+                <a href="blacklist.html" class="active">Blacklist</a>
+                <a href="locations.html">Locations</a>
+                <button onclick="logout()">Logout</button>
+            </nav>
+        </header>
+
+        <div class="blacklist-container">
+            <div class="stats-summary" id="statsSummary">
+                <!-- Stats will be populated here -->
+            </div>
+
+            <div class="add-blacklist-card">
+                <h3>Add IP to Blacklist</h3>
+                <form id="addBlacklistForm" class="add-blacklist-form">
+                    <div class="form-group">
+                        <label for="ipAddress">IP Address *</label>
+                        <input type="text" id="ipAddress" placeholder="e.g., 192.168.1.100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason</label>
+                        <textarea id="reason" placeholder="Reason for blacklisting (optional)"></textarea>
+                    </div>
+                    <button type="submit" class="btn-add">Add to Blacklist</button>
+                </form>
+                <div id="formMessage"></div>
+            </div>
+
+            <div id="blacklistItems">
+                <!-- Blacklisted IPs will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('jwt')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadBlacklist();
+        });
+
+        function logout() {
+            localStorage.removeItem('jwt');
+            window.location.href = 'login.html';
+        }
+
+        async function loadBlacklist() {
+            try {
+                const response = await fetch('/api/blacklist', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load blacklist');
+                }
+
+                const blacklistedIPs = await response.json();
+                displayBlacklist(blacklistedIPs);
+                displayStats(blacklistedIPs);
+            } catch (error) {
+                console.error('Error loading blacklist:', error);
+                alert('Failed to load blacklist');
+            }
+        }
+
+        function displayStats(blacklistedIPs) {
+            const totalBlacklisted = blacklistedIPs.length;
+            const recentBlacklisted = blacklistedIPs.filter(ip => {
+                const blacklistedAt = new Date(ip.blacklisted_at);
+                const now = new Date();
+                const daysDiff = (now - blacklistedAt) / (1000 * 60 * 60 * 24);
+                return daysDiff <= 7; // Blacklisted in last 7 days
+            }).length;
+
+            const statsContainer = document.getElementById('statsSummary');
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${totalBlacklisted}</div>
+                    <div class="stat-label">Total Blacklisted</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${recentBlacklisted}</div>
+                    <div class="stat-label">Recent (7 days)</div>
+                </div>
+            `;
+        }
+
+        function displayBlacklist(blacklistedIPs) {
+            const container = document.getElementById('blacklistItems');
+            
+            if (blacklistedIPs.length === 0) {
+                container.innerHTML = '<p>No blacklisted IPs found.</p>';
+                return;
+            }
+
+            container.innerHTML = blacklistedIPs.map(ip => {
+                const blacklistedAt = new Date(ip.blacklisted_at).toLocaleString();
+                const daysSinceBlacklisted = Math.floor((new Date() - new Date(ip.blacklisted_at)) / (1000 * 60 * 60 * 24));
+
+                return `
+                    <div class="blacklist-item">
+                        <div class="blacklist-info">
+                            <div class="blacklist-ip">${ip.ip_address}</div>
+                            <div class="blacklist-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Reason</div>
+                                    <div class="detail-value">${ip.reason || 'No reason provided'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Blacklisted By</div>
+                                    <div class="detail-value">${ip.blacklisted_by}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Blacklisted At</div>
+                                    <div class="detail-value">${blacklistedAt}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Days Ago</div>
+                                    <div class="detail-value">${daysSinceBlacklisted}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="blacklist-actions">
+                            <button class="btn-remove" onclick="removeFromBlacklist('${ip.ip_address}')">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Handle form submission
+        document.getElementById('addBlacklistForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ipAddress = document.getElementById('ipAddress').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+            const messageDiv = document.getElementById('formMessage');
+
+            // Basic IP validation
+            const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            if (!ipRegex.test(ipAddress)) {
+                messageDiv.innerHTML = '<div class="error-message">Please enter a valid IP address</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/blacklist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    },
+                    body: JSON.stringify({
+                        ip_address: ipAddress,
+                        reason: reason
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add IP to blacklist');
+                }
+
+                const result = await response.json();
+                messageDiv.innerHTML = `<div class="success-message">${result.message}</div>`;
+                
+                // Clear form
+                document.getElementById('addBlacklistForm').reset();
+                
+                // Reload blacklist
+                loadBlacklist();
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error adding to blacklist:', error);
+                messageDiv.innerHTML = '<div class="error-message">Failed to add IP to blacklist</div>';
+            }
+        });
+
+        async function removeFromBlacklist(ip) {
+            if (!confirm(`Are you sure you want to remove ${ip} from the blacklist?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/blacklist/${encodeURIComponent(ip)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to remove IP from blacklist');
+                }
+
+                alert(`IP ${ip} has been removed from blacklist`);
+                loadBlacklist(); // Reload the list
+            } catch (error) {
+                console.error('Error removing from blacklist:', error);
+                alert('Failed to remove IP from blacklist');
+            }
+        }
+    </script>
+</body>
+</html> 

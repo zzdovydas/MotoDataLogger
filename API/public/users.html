@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>User Management</h1>
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="access-logs.html">Access Logs</a>
+        <a href="known-devices.html">Known Devices</a>
+        <a href="blacklist.html">Blacklist</a>
+        <a href="locations.html">Locations</a>
+        <button onclick="logout()">Logout</button>
+      </nav>
+    </header>
+    <div class="add-user-card">
+      <form id="addUserForm">
+        <input type="text" id="newUsername" placeholder="Username" required autocomplete="username">
+        <input type="password" id="newPassword" placeholder="Password" required autocomplete="new-password">
+        <button type="submit">Add User</button>
+      </form>
+      <div id="addUserError"></div>
+    </div>
+    <div class="user-list-card">
+      <ul id="userList"></ul>
+    </div>
+  </div>
+  <script>
+    if (!localStorage.getItem('jwt')) {
+      window.location.href = 'login.html';
+    }
+    function logout() {
+      localStorage.removeItem('jwt');
+      window.location.href = 'login.html';
+    }
+    async function fetchUsers() {
+      const res = await fetch('/api/users', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+      });
+      if (!res.ok) {
+        logout();
+        return;
+      }
+      const users = await res.json();
+      const list = document.getElementById('userList');
+      list.innerHTML = '';
+      users.forEach(u => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${u.username} <span class="user-token">${u.token}</span></span>`;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.className = 'delete-btn';
+        delBtn.onclick = async () => {
+          if (confirm('Delete user ' + u.username + '?')) {
+            const delRes = await fetch('/api/users/' + u.username, {
+              method: 'DELETE',
+              headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+            });
+            if (delRes.ok) fetchUsers();
+          }
+        };
+        li.appendChild(delBtn);
+        list.appendChild(li);
+      });
+    }
+    document.getElementById('addUserForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('newUsername').value;
+      const password = document.getElementById('newPassword').value;
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+        },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('addUserError').innerText = '';
+        fetchUsers();
+        document.getElementById('addUserForm').reset();
+      } else {
+        document.getElementById('addUserError').innerText = data.error || 'Error adding user';
+      }
+    };
+    fetchUsers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Logs</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .logs-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .filters {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .filters input, .filters select {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .filters button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .filters button:hover {
+            background: #0056b3;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logs-table th, .logs-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .logs-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .logs-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .pagination button:hover {
+            background: #f8f9fa;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status-200 { color: #28a745; }
+        .status-404 { color: #dc3545; }
+        .status-500 { color: #dc3545; }
+        
+        .user-agent {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Access Logs</h1>
+            <nav>
+                <a href="index.html">Dashboard</a>
+                <a href="users.html">Users</a>
+                <a href="access-logs.html" class="active">Access Logs</a>
+                <a href="known-devices.html">Known Devices</a>
+                <a href="blacklist.html">Blacklist</a>
+                <a href="locations.html">Locations</a>
+                <button onclick="logout()">Logout</button>
+            </nav>
+        </header>
+
+        <div class="logs-container">
+            <div class="filters">
+                <input type="text" id="ipFilter" placeholder="Filter by IP address">
+                <input type="text" id="pathFilter" placeholder="Filter by path">
+                <select id="methodFilter">
+                    <option value="">All Methods</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+                <button onclick="loadLogs()">Filter</button>
+                <button onclick="loadStats()">Load Stats</button>
+                <button onclick="clearFilters()">Clear Filters</button>
+            </div>
+            <div id="activeFilters" style="margin-bottom: 10px; font-size: 14px; color: #666;"></div>
+
+            <div id="stats" class="stats-grid"></div>
+
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                        <th>Method</th>
+                        <th>Path</th>
+                        <th>Status</th>
+                        <th>Processing Time</th>
+                        <th>User Agent</th>
+                        <th>Referer</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <button onclick="previousPage()" id="prevBtn">Previous</button>
+                <span id="pageInfo">Page 1</span>
+                <button onclick="nextPage()" id="nextBtn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const pageSize = 50;
+        let currentFilter = '';
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('jwt')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadLogs();
+            loadStats();
+            
+            // Add event listeners for filter changes
+            document.getElementById('ipFilter').addEventListener('input', updateActiveFiltersDisplay);
+            document.getElementById('pathFilter').addEventListener('input', updateActiveFiltersDisplay);
+            document.getElementById('methodFilter').addEventListener('change', updateActiveFiltersDisplay);
+        });
+
+        function logout() {
+            localStorage.removeItem('jwt');
+            window.location.href = 'login.html';
+        }
+
+        async function loadLogs() {
+            const ipFilter = document.getElementById('ipFilter').value;
+            const pathFilter = document.getElementById('pathFilter').value;
+            const methodFilter = document.getElementById('methodFilter').value;
+
+            let url = `/api/access-logs?limit=${pageSize}&offset=${currentPage * pageSize}`;
+            
+            // Check if multiple filters are applied
+            const activeFilters = [ipFilter, pathFilter, methodFilter].filter(f => f);
+            
+            if (activeFilters.length > 1) {
+                // Use combined filter endpoint
+                const params = new URLSearchParams({
+                    limit: pageSize,
+                    offset: currentPage * pageSize
+                });
+                if (ipFilter) params.append('ip', ipFilter);
+                if (pathFilter) params.append('path', pathFilter);
+                if (methodFilter) params.append('method', methodFilter);
+                url = `/api/access-logs/filter?${params.toString()}`;
+            } else if (ipFilter) {
+                url = `/api/access-logs/ip/${encodeURIComponent(ipFilter)}?limit=${pageSize}&offset=${currentPage * pageSize}`;
+            } else if (pathFilter) {
+                url = `/api/access-logs/path/${encodeURIComponent(pathFilter)}?limit=${pageSize}&offset=${currentPage * pageSize}`;
+            } else if (methodFilter) {
+                url = `/api/access-logs/method/${encodeURIComponent(methodFilter)}?limit=${pageSize}&offset=${currentPage * pageSize}`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load logs');
+                }
+
+                const logs = await response.json();
+                displayLogs(logs);
+                updatePagination();
+                updateActiveFiltersDisplay();
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                alert('Failed to load access logs');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/access-logs/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load stats');
+                }
+
+                const stats = await response.json();
+                displayStats(stats);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function displayStats(stats) {
+            const statsContainer = document.getElementById('stats');
+            statsContainer.innerHTML = '';
+
+            if (stats.length === 0) {
+                statsContainer.innerHTML = '<p>No access data available</p>';
+                return;
+            }
+
+            stats.forEach(stat => {
+                const statCard = document.createElement('div');
+                statCard.className = 'stat-card';
+                statCard.innerHTML = `
+                    <h3>IP: ${stat.ip_address}</h3>
+                    <p><strong>Requests:</strong> ${stat.request_count}</p>
+                    <p><strong>First Seen:</strong> ${new Date(stat.first_seen).toLocaleString()}</p>
+                    <p><strong>Last Seen:</strong> ${new Date(stat.last_seen).toLocaleString()}</p>
+                    <p><strong>Avg Processing Time:</strong> ${Math.round(stat.avg_processing_time || 0)}ms</p>
+                `;
+                statsContainer.appendChild(statCard);
+            });
+        }
+
+        function displayLogs(logs) {
+            const tbody = document.getElementById('logsTableBody');
+            tbody.innerHTML = '';
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">No logs found</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.ip_address}</td>
+                    <td>${log.method}</td>
+                    <td>${log.path}</td>
+                    <td class="status-${log.response_status}">${log.response_status}</td>
+                    <td>${log.processing_time_ms}ms</td>
+                    <td class="user-agent" title="${log.user_agent || ''}">${log.user_agent || '-'}</td>
+                    <td>${log.referer || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updatePagination() {
+            document.getElementById('pageInfo').textContent = `Page ${currentPage + 1}`;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadLogs();
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadLogs();
+        }
+
+        function clearFilters() {
+            document.getElementById('ipFilter').value = '';
+            document.getElementById('pathFilter').value = '';
+            document.getElementById('methodFilter').value = '';
+            currentPage = 0;
+            loadLogs();
+        }
+
+        function updateActiveFiltersDisplay() {
+            const ipFilter = document.getElementById('ipFilter').value;
+            const pathFilter = document.getElementById('pathFilter').value;
+            const methodFilter = document.getElementById('methodFilter').value;
+            
+            const activeFilters = [];
+            if (ipFilter) activeFilters.push(`IP: ${ipFilter}`);
+            if (pathFilter) activeFilters.push(`Path: ${pathFilter}`);
+            if (methodFilter) activeFilters.push(`Method: ${methodFilter}`);
+            
+            const display = document.getElementById('activeFilters');
+            if (activeFilters.length > 0) {
+                display.textContent = `Active filters: ${activeFilters.join(', ')}`;
+            } else {
+                display.textContent = '';
+            }
+        }
+    </script>
+</body>
+</html> 

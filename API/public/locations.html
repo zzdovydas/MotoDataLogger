@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location History</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .locations-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .map-container {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .stats-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .controls {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .location-info {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 12px;
+            max-width: 250px;
+        }
+        
+        .location-info h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        
+        .location-info p {
+            margin: 4px 0;
+            color: #666;
+        }
+        
+        .location-info .datetime {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Location History</h1>
+            <nav>
+                <a href="index.html">Dashboard</a>
+                <a href="users.html">Users</a>
+                <a href="access-logs.html">Access Logs</a>
+                <a href="known-devices.html">Known Devices</a>
+                <a href="blacklist.html">Blacklist</a>
+                <a href="locations.html" class="active">Locations</a>
+                <button onclick="logout()">Logout</button>
+            </nav>
+        </header>
+
+        <div class="locations-container">
+            <div class="stats-panel" id="statsPanel">
+                <!-- Stats will be populated here -->
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="dateFilter">Date Range:</label>
+                    <input type="date" id="startDate" onchange="filterLocations()">
+                    <span>to</span>
+                    <input type="date" id="endDate" onchange="filterLocations()">
+                    
+                    <label for="timeFilter">Time Range:</label>
+                    <input type="time" id="startTime" onchange="filterLocations()">
+                    <span>to</span>
+                    <input type="time" id="endTime" onchange="filterLocations()">
+                    
+                    <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+                    <button class="btn" onclick="fitAllMarkers()">Fit All Markers</button>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let allLocations = [];
+        let filteredLocations = [];
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('jwt')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            initializeMap();
+            loadLocations();
+        });
+
+        function logout() {
+            localStorage.removeItem('jwt');
+            window.location.href = 'login.html';
+        }
+
+        function initializeMap() {
+            // Initialize map centered on a default location (can be adjusted)
+            map = L.map('map').setView([54.7085737, 25.29506], 13);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        async function loadLocations() {
+            try {
+                const response = await fetch('/api/tracker/locations', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load location data');
+                }
+
+                allLocations = await response.json();
+                filteredLocations = [...allLocations];
+                
+                displayStats(allLocations);
+                displayLocations(allLocations);
+                
+                // Set default date range to last 7 days
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+                
+                document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+                document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+                
+            } catch (error) {
+                console.error('Error loading locations:', error);
+                document.querySelector('.locations-container').innerHTML = 
+                    '<div class="error">Failed to load location data. Please try again.</div>';
+            }
+        }
+
+        function displayStats(locations) {
+            const totalLocations = locations.length;
+            const uniqueDays = new Set(locations.map(loc => new Date(loc.timestamp).toDateString())).size;
+            const avgBattery = locations.length > 0 ? 
+                Math.round(locations.reduce((sum, loc) => sum + loc.battery_level, 0) / locations.length) : 0;
+            const latestLocation = locations.length > 0 ? new Date(locations[0].timestamp).toLocaleString() : 'None';
+
+            const statsContainer = document.getElementById('statsPanel');
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${totalLocations}</div>
+                    <div class="stat-label">Total Locations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${uniqueDays}</div>
+                    <div class="stat-label">Days Tracked</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${avgBattery}%</div>
+                    <div class="stat-label">Avg Battery</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${locations.length > 0 ? locations[0].battery_level : 0}%</div>
+                    <div class="stat-label">Current Battery</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${latestLocation}</div>
+                    <div class="stat-label">Last Seen</div>
+                </div>
+            `;
+        }
+
+        function displayLocations(locations) {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            if (locations.length === 0) {
+                return;
+            }
+
+            // Create markers for each location
+            locations.forEach((location, index) => {
+                const marker = L.circleMarker([location.latitude, location.longitude], {
+                    radius: 6,
+                    fillColor: getBatteryColor(location.battery_level),
+                    color: '#333',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                // Create popup content
+                const popupContent = `
+                    <div class="location-info">
+                        <h4>Location ${index + 1}</h4>
+                        <p class="datetime">${new Date(location.timestamp).toLocaleString()}</p>
+                        <p><strong>Battery:</strong> ${location.battery_level}%</p>
+                        <p><strong>Altitude:</strong> ${location.altitude}m</p>
+                        <p><strong>Accuracy:</strong> ${location.accuracy}m</p>
+                        <p><strong>Provider:</strong> ${location.provider}</p>
+                        ${location.speed ? `<p><strong>Speed:</strong> ${location.speed}</p>` : ''}
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+            });
+
+            // Fit map to show all markers
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        function getBatteryColor(batteryLevel) {
+            if (batteryLevel >= 50) return '#28a745'; // Green
+            if (batteryLevel >= 20) return '#ffc107'; // Yellow
+            return '#dc3545'; // Red
+        }
+
+        function filterLocations() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+
+            filteredLocations = allLocations.filter(location => {
+                const locationDate = new Date(location.timestamp);
+                const locationDateStr = locationDate.toISOString().split('T')[0];
+                const locationTimeStr = locationDate.toTimeString().split(' ')[0];
+
+                // Date filter
+                if (startDate && locationDateStr < startDate) return false;
+                if (endDate && locationDateStr > endDate) return false;
+
+                // Time filter
+                if (startTime && locationTimeStr < startTime) return false;
+                if (endTime && locationTimeStr > endTime) return false;
+
+                return true;
+            });
+
+            displayStats(filteredLocations);
+            displayLocations(filteredLocations);
+        }
+
+        function clearFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            
+            filteredLocations = [...allLocations];
+            displayStats(filteredLocations);
+            displayLocations(filteredLocations);
+        }
+
+        function fitAllMarkers() {
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+    </script>
+</body>
+</html> 

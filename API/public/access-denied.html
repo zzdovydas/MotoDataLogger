@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .access-denied-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            text-align: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+        
+        .access-denied-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .access-denied-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        
+        .access-denied-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .access-denied-details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .detail-item {
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .detail-value {
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .contact-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="access-denied-container">
+        <div class="access-denied-icon">🚫</div>
+        <h1 class="access-denied-title">Access Denied</h1>
+        <p class="access-denied-message">
+            Your IP address has been blacklisted and you are not authorized to access this system.
+        </p>
+        
+        <div class="access-denied-details">
+            <div class="detail-item">
+                <span class="detail-label">IP Address:</span>
+                <span class="detail-value" id="ipAddress">Loading...</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Reason:</span>
+                <span class="detail-value" id="reason">Loading...</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value" id="timestamp">Loading...</span>
+            </div>
+        </div>
+        
+        <p class="access-denied-message">
+            If you believe this is an error, please contact the system administrator.
+        </p>
+        
+        <div class="contact-info">
+            <p>Security System</p>
+            <p>All access attempts are logged and monitored.</p>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const ip = urlParams.get('ip') || 'Unknown';
+        const reason = urlParams.get('reason') || 'No reason provided';
+        const timestamp = new Date().toLocaleString();
+        
+        // Update the page with details
+        document.getElementById('ipAddress').textContent = ip;
+        document.getElementById('reason').textContent = reason;
+        document.getElementById('timestamp').textContent = timestamp;
+        
+        // Prevent any navigation or form submission
+        document.addEventListener('click', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Prevent right-click context menu
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Allow only basic navigation keys
+            const allowedKeys = ['Tab', 'Escape', 'F5'];
+            if (!allowedKeys.includes(e.key)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Prevent browser back/forward navigation
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function() {
+            window.history.pushState(null, null, window.location.href);
+        });
+        
+        // Disable developer tools (basic attempt)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Prevent iframe embedding
+        if (window.top !== window.self) {
+            window.top.location = window.self.location;
+        }
+    </script>
+</body>
+</html> 

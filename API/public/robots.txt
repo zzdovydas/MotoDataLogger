@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /
+
+# Block all robots from accessing any content
+# This system contains sensitive security and tracking information
+# No public access is allowed 

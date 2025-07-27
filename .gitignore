@@ -10,8 +10,6 @@ obj/
 .vscode/
 .vs/
 
-# Ignore Git-related files
-.git/
 
 # Ignore log files and temporary files
 logs/
@@ -60,3 +58,49 @@ _ReSharper*/
 
 # Ignore migration files
 **/Migrations/
+
+# Ignore documentation files
+*.md
+docs/
+documentation/
+README.md
+requirements.md
+ACCESS_LOGGING.md
+DEVICE_DETECTION.md
+BLACKLIST.md
+
+# Ignore test files
+test-*.js
+*test*.js
+tests/
+__tests__/
+*.test.js
+*.spec.js
+test-*.py
+*test*.py
+
+# Ignore database files
+*.db
+*.sqlite
+*.sqlite3
+database.sqlite
+database.db
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+# Ignore SSL certificate files
+ssl/
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Ignore environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
