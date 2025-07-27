@@ -1,6 +1,6 @@
-# MotoDataLogger (API IN PROGRESS)
+# MotoDataLogger (API FINISHED 1.0v)
 
-**MotoDataLogger** is an **Android-based motorcycle tracking system** powered by the **Automate** app. It captures real-time sensor data from an Android device and structures it into a JSON request for future API integration. The idea is to be able to use an older or unused android device for tracking motorcycle or any other vehicle. The system will also implement the alarm system which will warn user if any of the sensors values changed beyond threshold.  
+**MotoDataLogger** is an open source **Android-based motorcycle tracking system** powered by the **Automate** app. It captures real-time sensor data from an Android device and structures it into a JSON request for future API integration. The idea is to be able to use an older or unused android device for tracking motorcycle or any other vehicle. The system implements the alarm system which will warn user if any of the sensors values changed beyond threshold.
 
 ## 📌 Features
 
@@ -10,7 +10,9 @@
   - 📊 Acceleration & orientation  
   - 🔋 Battery status  
   - 🌡 Temperature & humidity  
-  - 🧲 Magnetic field readings  
+  - 🧲 Magnetic field readings
+✔ **API and Web UI** – Receives and displays collected data.
+✔ **Traffic monitoring and blocking** – Functionality to inspect IP addresses that access the system and whitelist/blacklist these IP addresses using Web UI.
 
 ✔ **JSON Data Generation** – Prepares structured JSON output for seamless API integration.
 
@@ -19,20 +21,19 @@
 ## 🔧 Requirements  
 
 - **Android device** with the [Automate](https://llamalab.com/automate/) app  
-- **Location services enabled** for GPS tracking  
-- **Paid version recommended** (Automate app flow file may exceed free version limits)  
+- **Location services enabled** for GPS tracking. Might need rooted device depending on your case. Main problem may be that the automate app will not be able to send data to the api, if the device is locked. There is a workaround for non-rooted with which I had success. I will write down this workaround later on, when I have time.
+- **Paid version is a must** (Automate app flow file may exceed free version limits)  
 
 ## 🚀 Future Enhancements  
 
-- **.NET API integration** for real-time data transmission
-- **Live tracking dashboard**
+- **A separate app instead of an automate flow?** If anyone is interested and has skills in android/ios development contact me. Currently, I dont have time nor resources to develop Android or IOS application.
 
 - **JSON Data Generation:**
   The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
 
 ## Example JSON
 
-Gather data from Android device to send to API
+Gather data from Android device using Automate flow to send to API
 
 ```json
 {
