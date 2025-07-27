@@ -30,10 +30,7 @@
 
 ## 🚀 Future Enhancements  
 
-- **A separate app instead of an automate flow?** If anyone is interested and has skills in android/ios development contact me. Currently, I dont have time nor resources to develop Android or IOS application.
-
-- **JSON Data Generation:**
-  The collected data is structured into a **JSON request** for potential transmission to an API server (planned **.NET API** integration).  
+- **A separate app instead of an automate flow?** If anyone is interested and has skills in android/ios development contact me. Currently, I dont have time nor resources to develop Android or IOS application.  
 
 ## Example JSON
 
