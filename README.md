@@ -12,6 +12,10 @@
   - 🌡 Temperature & humidity  
   - 🧲 Magnetic field readings
 ✔ **API and Web UI** – Receives and displays collected data.
+
+<img width="1550" height="971" alt="dashboard" src="https://github.com/user-attachments/assets/49a02667-c7e0-4ab4-95bf-c7c39c42a42b" />
+
+
 ✔ **Traffic monitoring and blocking** – Functionality to inspect IP addresses that access the system and whitelist/blacklist these IP addresses using Web UI.
 
 ✔ **JSON Data Generation** – Prepares structured JSON output for seamless API integration.
