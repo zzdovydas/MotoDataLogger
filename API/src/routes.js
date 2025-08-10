@@ -6,7 +6,10 @@ const crypto = require('crypto');
 const fetch = require('node-fetch');
 require('dotenv').config();
 
-// Battery check function
+// Track last battery notification time for each user
+const lastBatteryNotificationTime = new Map();
+
+// Battery check function - sends notification every hour when battery is below 25%
 function checkBatteryStatus() {
   getAllUsers((err, users) => {
     if (err || !users) return;
@@ -14,24 +17,45 @@ function checkBatteryStatus() {
       getLastTrackerData(user.id, (err, data) => {
         if (err || !data) return;
         const batteryLevel = parseInt(data.battery_level);
-        const lastRequestTime = new Date(data.timestamp);
         const now = new Date();
-        const timeDiffMinutes = (now - lastRequestTime) / (1000 * 60);
+        const lastNotificationTime = lastBatteryNotificationTime.get(user.id);
         
-        if (batteryLevel < 30 && timeDiffMinutes <= 25) {
-          const pushoverToken = process.env.PUSHOVER_APP_TOKEN;
-          const pushoverUser = process.env.PUSHOVER_USER_KEY;
-          const message = `Low battery alert: ${user.username} battery is at ${batteryLevel}%`;
-          console.log('[DEBUG] Sending low battery notification:', message);
-          fetch('https://api.pushover.net/1/messages.json', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              token: pushoverToken,
-              user: pushoverUser,
-              message
-            })
-          });
+        // Only send notification if battery is below 25% and it's been at least an hour since last notification
+        if (batteryLevel < 25) {
+          const shouldSendNotification = !lastNotificationTime || 
+            (now - lastNotificationTime) >= (60 * 60 * 1000); // 1 hour in milliseconds
+          
+          if (shouldSendNotification) {
+            // Check if alarms are enabled before sending notification
+            isAlarmEnabled((err, alarmEnabled) => {
+              if (err) {
+                console.error('[ERROR] Failed to check alarm status for battery:', err);
+                return;
+              }
+              
+              if (alarmEnabled !== false) {
+                const pushoverToken = process.env.PUSHOVER_APP_TOKEN;
+                const pushoverUser = process.env.PUSHOVER_USER_KEY;
+                const message = `⚠️ LOW BATTERY ALERT!\n\nUser: ${user.username}\nBattery Level: ${batteryLevel}%\nTime: ${now.toLocaleString()}\n\nDevice battery is low (below 25%).`;
+                console.log('[DEBUG] Sending hourly low battery notification:', message);
+                fetch('https://api.pushover.net/1/messages.json', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: new URLSearchParams({
+                    token: pushoverToken,
+                    user: pushoverUser,
+                    message,
+                    title: 'MotoDataLogger - Low Battery Alert',
+                    priority: 1, // High priority
+                    sound: 'falling' // Use falling sound for battery alerts
+                  })
+                });
+                
+                // Update the last notification time for this user
+                lastBatteryNotificationTime.set(user.id, now);
+              }
+            });
+          }
         }
       });
     });
@@ -120,37 +144,11 @@ router.post('/tracker/data', authenticateTracker, (req, res) => {
     } else {
       console.log('[DEBUG] No previous tracker data found for user');
     }
-    // Battery check
-    if (parseInt(data.Battery_Level) < 20) {
+    // Battery check - just log low battery but don't send immediate notification
+    if (parseInt(data.Battery_Level) < 25) {
       lowBattery = true;
-      console.log('[DEBUG] Low battery detected');
-      
-      // Send low battery notification if alarms are enabled
-      isAlarmEnabled((err, alarmEnabled) => {
-        if (err) {
-          console.error('[ERROR] Failed to check alarm status for battery:', err);
-          return;
-        }
-        
-        if (alarmEnabled !== false) {
-          const pushoverToken = process.env.PUSHOVER_APP_TOKEN;
-          const pushoverUser = process.env.PUSHOVER_USER_KEY;
-          const message = `⚠️ LOW BATTERY ALERT!\n\nUser: ${user.username}\nBattery Level: ${data.Battery_Level}%\nTime: ${new Date().toLocaleString()}\n\nDevice battery is critically low.`;
-          console.log('[DEBUG] Sending low battery notification with alarm:', message);
-          fetch('https://api.pushover.net/1/messages.json', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              token: pushoverToken,
-              user: pushoverUser,
-              message,
-              title: 'MotoDataLogger - Low Battery Alert',
-              priority: 1, // High priority
-              sound: 'falling' // Use falling sound for battery alerts
-            })
-          });
-        }
-      });
+      console.log('[DEBUG] Low battery detected:', data.Battery_Level + '%');
+      // Battery notifications are now handled by the hourly checkBatteryStatus function
     }
     // Check if alarms are enabled before sending notifications
     isAlarmEnabled((err, alarmEnabled) => {
